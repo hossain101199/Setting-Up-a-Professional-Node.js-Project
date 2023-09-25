@@ -1,7 +1,7 @@
 {
-  "name": "backend-server",
+  "name": "Setting-Up-a-Professional-Node.js-Project",
   "version": "1.0.0",
-  "description": "",
+  "description": "When starting a new Node.js project, it's crucial to establish a robust development environment that encourages clean code, ensures code quality, and facilitates collaboration among team members. In this guide, we'll walk you through setting up a professional Node.js project using TypeScript, ESLint, Prettier, and Husky. These tools will help you maintain code consistency, catch errors early, and streamline your development process.",
   "main": "src/server.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
@@ -15,7 +15,7 @@
   "lint-staged": {
     "src/**/*.ts": "npm run lint-prettier"
   },
-  "author": "",
+  "author": "https://www.linkedin.com/in/hossain1011",
   "license": "ISC",
   "devDependencies": {
     "@types/cors": "^2.8.14",
