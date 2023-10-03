@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\Setting-Up-a-Professional-Node.js-Project\\logs\\winston\\error\\.363d0c09f57ea8feb214698f2a39c602fd9ce0a7-audit.json",
+    "files": [
+        {
+            "date": 1696318545316,
+            "name": "D:\\Setting-Up-a-Professional-Node.js-Project\\logs\\winston\\error\\13-03-10-2023-error.log",
+            "hash": "5f54e3d45238fc431451207a092a30553992331c432a374c8f12a9b8f2e89eb3"
+        }
+    ],
+    "hashType": "sha256"
+}
