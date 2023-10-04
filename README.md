@@ -624,7 +624,7 @@ This code adds event listeners to handle uncaught exceptions, unhandled promise 
 
 With these additions, your Node.js project is now equipped with robust logging using Winston and comprehensive error handling. You can log various types of messages, handle errors gracefully, and maintain clean and organized code. These improvements will help you build a more reliable and maintainable application.
 
-## Part 3: Enhancing Your Node.js Project with Additional Modules and Utilities
+## Part 5: Enhancing Your Node.js Project with Additional Modules and Utilities
 
 In this section, I will further enhance your Node.js project by adding additional modules and utilities to improve its functionality and maintainability.
 
