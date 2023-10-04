@@ -623,3 +623,310 @@ process.on('SIGTERM', () => {
 This code adds event listeners to handle uncaught exceptions, unhandled promise rejections, and SIGTERM signals gracefully. It ensures that the application logs errors and exits gracefully when necessary.
 
 With these additions, your Node.js project is now equipped with robust logging using Winston and comprehensive error handling. You can log various types of messages, handle errors gracefully, and maintain clean and organized code. These improvements will help you build a more reliable and maintainable application.
+
+## Part 3: Enhancing Your Node.js Project with Additional Modules and Utilities
+
+In this section, I will further enhance your Node.js project by adding additional modules and utilities to improve its functionality and maintainability.
+
+### Handling Not Found Routes
+
+In your `app.ts` file, add a route handler to handle requests to non-existent routes. This will respond with a 404 Not Found status code and a JSON message indicating that the API endpoint was not found. Add the following code to your` app.ts` file:
+
+```typescript
+// Handle not found
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Not Found',
+    errorMessages: [{ path: req.originalUrl, message: 'API Not Found' }],
+  });
+});
+```
+
+This function will catch any requests that don't match any defined routes and respond with a 404 status.
+
+### Create Shared Utility Functions
+
+In the shared folder, create a file named sendResponse.ts with the following code:
+
+```typescript
+import { Response } from 'express';
+
+type IApiResponse<T> = {
+  statusCode: number;
+  success: boolean;
+  message?: string | null;
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  data?: T | null;
+};
+
+const sendResponse = <T>(res: Response, data: IApiResponse<T>): void => {
+  const responseData: IApiResponse<T> = {
+    statusCode: data.statusCode,
+    success: data.success,
+    message: data.message || null,
+    meta: data.meta || null || undefined,
+    data: data.data || null,
+  };
+
+  res.status(data.statusCode).json(responseData);
+};
+
+export default sendResponse;
+```
+
+This utility function, `sendResponse`, helps standardize the format of responses sent by your API, making it easier to handle success and error responses consistently.
+
+### Implement a Catch-Async Wrapper
+
+In the `shared` folder, create a file named `catchAsync.ts` with the following code:
+
+```typescript
+import { NextFunction, Request, RequestHandler, Response } from 'express';
+
+const catchAsync =
+  (fn: RequestHandler) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await fn(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export default catchAsync;
+```
+
+The `catchAsync` function is a wrapper that helps catch errors in Express route handlers. It allows you to write cleaner and more concise route handlers by automatically handling errors and passing them to the Express `next()` function.
+
+### Create a Utility Function for Picking Object Properties
+
+In the shared folder, create a file named pick.ts with the following code:
+
+```typescript
+const pick = <T extends object, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Partial<T> => {
+  const finalObj: Partial<T> = {};
+  for (const key of keys) {
+    if (obj && Object.hasOwnProperty.call(obj, key)) {
+      finalObj[key] = obj[key];
+    }
+  }
+  return finalObj;
+};
+
+export default pick;
+```
+
+The `pick` function allows you to select specific properties from an object and create a new object containing only those properties.
+
+### Create a Pagination Options Interface
+
+In the interfaces folder, create a file named pagination.ts with the following content:
+
+```typescript
+export type IPaginationOptions = {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+```
+
+This interface defines the options that can be used for pagination.
+
+### Create a Pagination Helper
+
+In the `src` folder, create a folder named he`lpers, and within it, create a file named `paginationHelper.ts` with the following content:
+
+```typescript
+import { IPaginationOptions } from '../interfaces/pagination';
+
+type IOptionsResult = {
+  page: number;
+  limit: number;
+  skip: number;
+  sortBy: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+const calculatePagination = (options: IPaginationOptions): IOptionsResult => {
+  const page = Number(options.page || 1);
+  const limit = Number(options.limit || 10);
+  const skip = (page - 1) * limit;
+
+  const sortBy = options.sortBy || 'createdAt';
+  const sortOrder = options.sortOrder || 'desc';
+
+  return {
+    page,
+    limit,
+    skip,
+    sortBy,
+    sortOrder,
+  };
+};
+
+export const paginationHelpers = {
+  calculatePagination,
+};
+```
+
+This helper function, `calculatePagination`, calculates pagination options such as the page number, limit, skip, sorting criteria, and sorting order based on the provided options.
+
+### Create Pagination Constants
+
+In the `src` folder, create a folder named `constants`, and within it, create a file named `pagination.ts` with the following content:
+
+```typescript
+export const paginationFields = ['page', 'limit', 'sortBy', 'sortOrder'];
+```
+
+This constant array lists the fields that can be used for pagination in your application.
+
+### Define Common Response Interfaces
+
+In the `interfaces` folder, create a file named `common.ts` with the following content:
+
+```typescript
+import IGenericErrorMessage from './error';
+
+export type IGenericResponse<T> = {
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  data: T;
+};
+
+export type IGenericErrorResponse = {
+  statusCode: number;
+  message: string;
+  errorMessages: IGenericErrorMessage[];
+};
+```
+
+These interfaces define common response structures for your API, making it easier to maintain a consistent response format throughout your application.
+
+### Organize Your Routes
+
+In the `app` folder, create a folder named `routes`. Inside the `routes` folder, create an `index.ts` file to serve as the entry point for your routes. You can define and organize your routes within this structure.
+
+```typescript
+import express from 'express';
+
+const routes = express.Router();
+
+// const moduleRoutes = [
+//   {
+//     path: '/auth',
+//     route: authRoutes,
+//   },
+// ];
+
+// moduleRoutes.forEach(route => routes.use(route.path, route.route));
+
+export default routes;
+```
+
+### Mount Routes in Your Express Application
+
+In your `app.ts` file, mount your routes by importing and using the `router` from the routes folder:
+
+```typescript
+import routes from './app/routes';
+
+// ...
+
+// Application routes
+app.use('/api/v1', routes);
+```
+
+This code specifies that all routes defined in the routes folder will be mounted under the '/api/v1' path in your Express application.
+
+By following these steps, you've organized your project, added utility functions, and set up a structure to easily manage and expand your routes. This will make your Node.js project more maintainable as it grows.
+
+## Here are the steps to use the setup from GitHub repository:
+
+### Step 1: Clone the Repository
+
+You can clone the repository to your local machine using the following command:
+
+```bash
+git clone https://github.com/hossain101199/Setting-Up-a-Professional-Node.js-Project.git
+```
+
+### Step 2: Navigate to the Project Directory
+
+Enter the project directory using the cd command:
+
+```bash
+cd Setting-Up-a-Professional-Node.js-Project
+```
+
+### Step 3: Install Dependencies
+
+To install the project dependencies, use the npm install command:
+
+```bash
+npm install
+```
+
+### Step 4: Set Up Environment Variables
+
+Create a `.env` file in the project's root directory and add your environment-specific configuration. For example:
+
+```env
+NODE_ENV=development
+PORT=8000
+```
+
+### Step 5: Run the Development Server
+
+Start the development server using the following command:
+
+```bash
+npm run dev
+```
+
+If everything is set up correctly, you should see `"App listening on port 8000"` in the console.
+
+### Step 6: Access the Application
+
+You can access your Node.js application by opening a web browser and navigating to http://localhost:8000 (or the port you specified in your .env file).
+
+Your project is now up and running with the provided setup. You can start building and expanding your Node.js application based on this foundation.
+
+## Conclusion
+
+Congratulations on successfully setting up the foundation of your professional Node.js project! You've covered essential aspects such as project structure, TypeScript integration, linting, formatting, logging, error handling, and Git hooks. This well-structured development environment will greatly assist you in building robust and maintainable Node.js applications.
+
+## What's Next?
+
+In the upcoming chapters, I will take the project to the next level by implementing user authentication. I will utilize popular technologies such as PostgreSQL, Prisma, JSON Web Tokens (JWT), and bcrypt to enhance the security and functionality of the application.
+
+## Your Feedback Matters
+
+Your opinion and feedback are essential to me! I value your input as it helps me improve and grow. If you have any questions, suggestions, or need further clarification on any part of this tutorial, please don't hesitate to reach out. Your feedback will help me tailor future content to your needs.
+
+Thank you for joining me on this journey to build a professional Node.js project. I look forward to guiding you through the implementation of user authentication and helping you become a more skilled and confident developer. Stay tuned for the next chapters!
+
+## Contact
+
+If you have any questions or feedback, feel free to contact me:
+
+- Mohammad Hossain - [Linkedin](https://www.linkedin.com/in/hossain1011/) - fshossain10@gmail.com
+
+[![LinkedIn][linkedin-shield]][linkedin-url]
+
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://www.linkedin.com/in/hossain1011/
+
+**Happy coding! 🚀**
